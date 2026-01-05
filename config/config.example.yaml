@@ -1,0 +1,261 @@
+# Topic-specific audience configuration
+topics:
+  polymarket:
+    audience_level: beginner
+    include_context: true
+    context_text: "Polymarket is a prediction market platform where users bet on future events using cryptocurrency. Markets cover politics, sports, crypto, and current events."
+    min_quality_score: 0.5
+    max_articles_per_day: 10
+    trusted_sources:
+      - "Polymarket Blog"
+      - "CoinDesk"
+      - "Decrypt"
+      - "The Block"
+      - "The Defiant"
+
+  robotics:
+    audience_level: beginner
+    include_context: true
+    context_text: "Robotics combines mechanical engineering, AI, and sensors to create machines that perform tasks autonomously or assist humans in various industries."
+    min_quality_score: 0.5
+    max_articles_per_day: 10
+    trusted_sources:
+      - "IEEE Spectrum"
+      - "The Robot Report"
+      - "Robohub"
+      - "Robotics Business Review"
+
+  ai:
+    audience_level: cs_student
+    include_context: false
+    context_text: null
+    min_quality_score: 0.5  # Lowered from 0.6 to account for older RSS articles
+    max_articles_per_day: 10
+    trusted_sources:
+      - "OpenAI Blog"
+      - "Anthropic News"
+      - "arXiv"
+      - "Hacker News"
+      - "Google AI Blog"
+      - "DeepMind Blog"
+
+# RSS feed sources (42 curated feeds across 3 topics)
+news_sources:
+  polymarket:
+    - url: https://www.coindesk.com/tag/polymarket/feed/
+      priority: high
+      enabled: false  # Disabled: 403 Forbidden (anti-bot protection)
+    - url: https://decrypt.co/feed
+      priority: high
+      enabled: true
+    - url: https://www.theblock.co/rss.xml
+      priority: medium
+      enabled: true
+    - url: https://cointelegraph.com/rss
+      priority: medium
+      enabled: true
+    - url: https://blockworks.co/feed
+      priority: medium
+      enabled: true
+    - url: https://www.coindesk.com/tag/prediction-markets/feed/
+      priority: medium
+      enabled: false  # Disabled: 403 Forbidden (anti-bot protection)
+    - url: https://www.coindesk.com/tag/decentralized-finance/feed/
+      priority: medium
+      enabled: false  # Disabled: 403 Forbidden (anti-bot protection)
+    - url: https://thedefiant.io/api/feed
+      priority: high
+      enabled: true
+    - url: https://cryptoslate.com/feed/
+      priority: low
+      enabled: true
+    - url: https://www.newsbtc.com/feed/
+      priority: low
+      enabled: true
+    - url: https://cryptonews.com/news/feed/
+      priority: low
+      enabled: true
+    - url: https://bitcoinist.com/feed/
+      priority: low
+      enabled: true
+
+  robotics:
+    - url: https://spectrum.ieee.org/feeds/robotics.rss
+      priority: high
+      enabled: true
+    - url: https://www.therobotreport.com/feed/
+      priority: high
+      enabled: true
+    - url: https://robohub.org/feed/
+      priority: high
+      enabled: true
+    - url: https://www.roboticsbusinessreview.com/feed/
+      priority: medium
+      enabled: true
+    - url: https://robots.ieee.org/feed/
+      priority: medium
+      enabled: true
+    - url: https://www.technologyreview.com/topic/robotics/feed
+      priority: high
+      enabled: true
+    - url: https://techcrunch.com/tag/robotics/feed/
+      priority: medium
+      enabled: true
+    - url: https://www.theverge.com/rss/robotics/index.xml
+      priority: medium
+      enabled: true
+    - url: https://spectrum.ieee.org/feeds/feed.rss
+      priority: medium
+      enabled: true
+    - url: https://www.robotics.org/content-detail.cfm/RSS/Industrial-Robotics-Industry-Insights/content_id/1
+      priority: medium
+      enabled: true
+    - url: https://www.newscientist.com/subject/technology/feed/
+      priority: medium
+      enabled: true
+      # Note: This feed covers general technology including robotics
+
+  ai:
+    - url: https://openai.com/blog/rss.xml
+      priority: high
+      enabled: true
+    - url: https://www.anthropic.com/index.xml
+      priority: high
+      enabled: false  # Disabled: 404 error, no working RSS feed available
+    - url: https://blog.google/technology/ai/rss/
+      priority: high
+      enabled: true
+    - url: https://www.deepmind.com/blog/rss.xml
+      priority: high
+      enabled: true
+    - url: https://techcrunch.com/category/artificial-intelligence/feed/
+      priority: high
+      enabled: true
+    - url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+      priority: medium
+      enabled: true  # Fixed: Updated to working RSS path
+    - url: https://www.artificialintelligence-news.com/feed/
+      priority: medium
+      enabled: false  # Disabled: 403 Forbidden (anti-bot protection)
+    - url: https://blogs.nvidia.com/feed/
+      priority: high
+      enabled: true
+    - url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+      priority: high
+      enabled: true
+    - url: https://venturebeat.com/category/ai/feed/
+      priority: medium
+      enabled: true
+    - url: https://spectrum.ieee.org/feeds/artificial-intelligence.rss
+      priority: high
+      enabled: true
+    - url: https://machinelearningmastery.com/feed/
+      priority: medium
+      enabled: true
+    - url: https://www.marktechpost.com/feed/
+      priority: medium
+      enabled: false  # Disabled: 403 Forbidden (anti-bot protection)
+    - url: https://aiindex.stanford.edu/feed/
+      priority: high
+      enabled: true
+    - url: https://www.unite.ai/feed/
+      priority: medium
+      enabled: false  # Disabled: 403 Forbidden (anti-bot protection)
+    - url: https://syncedreview.com/feed/
+      priority: medium
+      enabled: true
+    # Additional high-quality AI sources to compensate for 403-blocked feeds
+    - url: https://huggingface.co/blog/feed.xml
+      priority: high
+      enabled: true
+    - url: https://aws.amazon.com/blogs/machine-learning/feed/
+      priority: medium
+      enabled: true
+
+# Alternative content sources
+alternative_sources:
+  arxiv:
+    enabled: true  # Enabled for AI research papers
+    categories: ['cs.AI', 'cs.LG', 'cs.RO']
+    max_per_category: 5
+
+  hacker_news:
+    enabled: true  # Enabled for community-curated tech news
+    min_score: 100  # Higher threshold for quality
+    max_age_hours: 24  # Only recent stories
+    keywords: ['ai', 'artificial intelligence', 'machine learning', 'robotics', 'llm', 'gpt', 'claude', 'openai']
+
+  custom_scrapers:
+    enabled: false  # Reserved for future custom scrapers
+
+# Summarization configuration
+summarization:
+  beginner_prompt_path: config/prompts/beginner.txt
+  cs_student_prompt_path: config/prompts/cs_student.txt
+  max_tokens: 500
+  temperature: 0.3
+
+# Multi-Provider Configuration (NEW - 推荐使用)
+providers:
+  # Provider 1: NVIDIA API (通过OpenAI兼容接口)
+  - provider_id: nvidia_primary
+    provider_type: openai
+    model: meta/llama-3.3-70b-instruct
+    enabled: true
+    priority: 1  # 优先级最高，先使用
+    base_url: https://integrate.api.nvidia.com/v1
+    timeout: 30
+    max_tokens: 500
+    temperature: 0.3
+    input_cost_per_1M_tokens: 0.0  # NVIDIA定价
+    output_cost_per_1M_tokens: 0.0
+
+  # Provider 2: Anthropic Claude (如果您有API key，请启用)
+  # - provider_id: anthropic_fallback
+  #   provider_type: anthropic
+  #   model: claude-sonnet-4-5
+  #   enabled: false  # 暂时禁用，等有API key后启用
+  #   priority: 2  # 优先级第二，NVIDIA失败时使用
+  #   timeout: 30
+  #   max_tokens: 500
+  #   temperature: 0.3
+  #   input_cost_per_1M_tokens: 3.0
+  #   output_cost_per_1M_tokens: 15.0
+
+# Provider选择策略: priority(优先级), cost(成本), performance(性能)
+provider_strategy: priority
+
+# Legacy Claude API configuration (保留用于向后兼容)
+claude:
+  model: claude-sonnet-4-5
+  max_tokens_per_summary: 500
+  # api_base_url: https://your-custom-api-endpoint.com/v1  # Optional: Custom API endpoint
+
+# Email configuration
+email:
+  smtp_host: smtp.qq.com
+  smtp_port: 465
+  smtp_username: 2847206316@qq.com
+  from_email: 2847206316@qq.com
+  use_tls: false
+  # For QQ Mail, you need to:
+  # 1. Enable SMTP in QQ Mail settings
+  # 2. Generate an authorization code (授权码)
+  # 3. Use that authorization code as SMTP_PASSWORD in .env
+
+# Execution settings
+execution:
+  run_time: "08:00"
+  max_articles_per_topic: 15
+
+# Quality filtering
+quality:
+  min_content_length: 200
+  dedup_title_threshold: 0.85
+  history_days: 30
+
+# File paths
+paths:
+  history_file: data/sent_articles.json
+  log_file: logs/news_aggregator.log
+  execution_history_file: data/execution_history.json

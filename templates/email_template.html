@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily AI News Digest</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a1a1a;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .summary {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border-left: 4px solid #2196F3;
+        }
+        .summary p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .topic-section {
+            margin-bottom: 40px;
+        }
+        .topic-header {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .topic-icon {
+            margin-right: 10px;
+            font-size: 32px;
+        }
+        .audience-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: normal;
+            margin-left: 8px;
+        }
+        .context-card {
+            background-color: #e8f4f8;
+            border: 1px solid #b3d9e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .context-card summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 5px;
+            user-select: none;
+        }
+        .context-card summary:hover {
+            color: #1a73e8;
+        }
+        .context-card p {
+            margin: 10px 0 0 0;
+            padding: 10px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .article {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .article-title {
+            font-size: 20px;
+            color: #1a73e8;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .article-bullets {
+            margin: 15px 0;
+            padding-left: 0;
+        }
+        .article-bullets li {
+            margin-bottom: 8px;
+            color: #555;
+            list-style-position: inside;
+        }
+        .read-more {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        .read-more:hover {
+            background-color: #45a049;
+        }
+        .source {
+            font-size: 14px;
+            color: #777;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .no-articles {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+        .no-topic-articles {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #ccc;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            .topic-header {
+                font-size: 24px;
+                flex-wrap: wrap;
+            }
+            .article-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Daily AI News Digest - {{ date }}</h1>
+
+        {% if has_articles %}
+        <div class="summary">
+            <p><strong>Today's Summary:</strong></p>
+            <p>{{ polymarket_count }} Polymarket {{ "article" if polymarket_count == 1 else "articles" }} |
+               {{ ai_count }} AI {{ "article" if ai_count == 1 else "articles" }} |
+               {{ robotics_count }} Robotics {{ "article" if robotics_count == 1 else "articles" }}</p>
+            <p><strong>Total:</strong> {{ total_count }} {{ "article" if total_count == 1 else "articles" }}</p>
+        </div>
+
+        <!-- Polymarket Section -->
+        <div class="topic-section">
+            <h2 class="topic-header">
+                <span class="topic-icon">🎲</span>
+                Polymarket ({{ polymarket_count }} {{ "article" if polymarket_count == 1 else "articles" }})
+                <span class="audience-label">- For Beginners</span>
+            </h2>
+            {% if polymarket_context %}
+            <details class="context-card">
+                <summary>ℹ️ Background: What is Polymarket?</summary>
+                <p>{{ polymarket_context }}</p>
+            </details>
+            {% endif %}
+            {% if polymarket_articles %}
+            {% for article in polymarket_articles %}
+            <div class="article">
+                <h3 class="article-title">{{ article.title }}</h3>
+                {% if article.summary_bullets %}
+                <ul class="article-bullets">
+                    {% for bullet in article.summary_bullets %}
+                    <li>{{ bullet }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>{{ article.content[:300] }}...</p>
+                {% endif %}
+                <a href="{{ article.url }}" class="read-more">Read more →</a>
+                <div class="source">Source: {{ article.source }}</div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="no-topic-articles">
+                No updates today. Check back tomorrow!
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- AI Section -->
+        <div class="topic-section">
+            <h2 class="topic-header">
+                <span class="topic-icon">🤖</span>
+                AI ({{ ai_count }} {{ "article" if ai_count == 1 else "articles" }})
+                <span class="audience-label">- For CS Students</span>
+            </h2>
+            {% if ai_articles %}
+            {% for article in ai_articles %}
+            <div class="article">
+                <h3 class="article-title">{{ article.title }}</h3>
+                {% if article.summary_bullets %}
+                <ul class="article-bullets">
+                    {% for bullet in article.summary_bullets %}
+                    <li>{{ bullet }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>{{ article.content[:300] }}...</p>
+                {% endif %}
+                <a href="{{ article.url }}" class="read-more">Read more →</a>
+                <div class="source">Source: {{ article.source }}</div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="no-topic-articles">
+                No updates today. Check back tomorrow!
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Robotics Section -->
+        <div class="topic-section">
+            <h2 class="topic-header">
+                <span class="topic-icon">🦾</span>
+                Robotics ({{ robotics_count }} {{ "article" if robotics_count == 1 else "articles" }})
+                <span class="audience-label">- For Beginners</span>
+            </h2>
+            {% if robotics_context %}
+            <details class="context-card">
+                <summary>ℹ️ Background: What is Robotics?</summary>
+                <p>{{ robotics_context }}</p>
+            </details>
+            {% endif %}
+            {% if robotics_articles %}
+            {% for article in robotics_articles %}
+            <div class="article">
+                <h3 class="article-title">{{ article.title }}</h3>
+                {% if article.summary_bullets %}
+                <ul class="article-bullets">
+                    {% for bullet in article.summary_bullets %}
+                    <li>{{ bullet }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>{{ article.content[:300] }}...</p>
+                {% endif %}
+                <a href="{{ article.url }}" class="read-more">Read more →</a>
+                <div class="source">Source: {{ article.source }}</div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="no-topic-articles">
+                No updates today. Check back tomorrow!
+            </div>
+            {% endif %}
+        </div>
+
+        {% else %}
+        <div class="no-articles">
+            <p>No new articles today.</p>
+            <p>Check back tomorrow for your daily digest!</p>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p>Generated on {{ timestamp }}</p>
+            <p>Daily AI News Aggregator</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,70 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+wheels/
+*.egg-info
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv
+venv/
+ENV/
+env/
+
+# UV
+.python-version
+
+# Data and logs (contains runtime data)
+data/
+logs/
+failed_emails/
+
+# Environment variables (contains secrets)
+.env
+*.env
+!example.env
+config/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Development and debug files
+debug_*.py
+test_api.py
+main.py
+
+# Temporary documentation (not for public release)
+COMPLETION_SUMMARY.md
+CUSTOM_API_SETUP.md
+MIGRATION.md
+QQ_MAIL_SETUP.md
+QUICK_SETUP.md

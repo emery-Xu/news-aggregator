@@ -1,0 +1,93 @@
+# Topic-specific audience configuration
+# Add your custom topics here using: uv run news-aggregator --add-feeds
+topics: {}
+
+# RSS feed sources
+# Add your feeds using: uv run news-aggregator --add-feeds
+news_sources: {}
+
+# Alternative content sources
+alternative_sources:
+  arxiv:
+    enabled: false  # Enable for AI research papers
+    categories: ['cs.AI', 'cs.LG', 'cs.RO']
+    max_per_category: 5
+
+  hacker_news:
+    enabled: false  # Enable for community-curated tech news
+    min_score: 100
+    max_age_hours: 24
+    keywords: ['ai', 'artificial intelligence', 'machine learning', 'robotics']
+
+  custom_scrapers:
+    enabled: false
+
+# Summarization configuration
+summarization:
+  beginner_prompt_path: config/prompts/beginner.txt
+  cs_student_prompt_path: config/prompts/cs_student.txt
+  max_tokens: 500
+  temperature: 0.3
+
+# Multi-Provider Configuration
+providers:
+  # Provider 1: NVIDIA API (OpenAI-compatible)
+  - provider_id: nvidia_primary
+    provider_type: openai
+    model: meta/llama-3.3-70b-instruct
+    enabled: true
+    priority: 1
+    base_url: https://integrate.api.nvidia.com/v1
+    timeout: 30
+    max_tokens: 500
+    temperature: 0.3
+    input_cost_per_1M_tokens: 0.0
+    output_cost_per_1M_tokens: 0.0
+
+  # Provider 2: Anthropic Claude (uncomment if you have API key)
+  # - provider_id: anthropic_fallback
+  #   provider_type: anthropic
+  #   model: claude-sonnet-4-5
+  #   enabled: false
+  #   priority: 2
+  #   timeout: 30
+  #   max_tokens: 500
+  #   temperature: 0.3
+  #   input_cost_per_1M_tokens: 3.0
+  #   output_cost_per_1M_tokens: 15.0
+
+# Provider selection strategy: priority, cost, performance
+provider_strategy: priority
+
+# Legacy Claude API configuration (for backward compatibility)
+claude:
+  model: claude-sonnet-4-5
+  max_tokens_per_summary: 500
+  # api_base_url: https://your-custom-api-endpoint.com/v1
+
+# Email configuration
+email:
+  smtp_host: smtp.gmail.com  # Use smtp.qq.com for QQ Mail
+  smtp_port: 587            # Use 465 for QQ Mail with SSL
+  smtp_username: your-email@gmail.com
+  from_email: your-email@gmail.com
+  use_tls: true  # Set to false for QQ Mail (uses SSL)
+  # For Gmail: Enable 2FA and create App Password
+  # For QQ Mail: Enable SMTP and use authorization code as SMTP_PASSWORD
+
+# Execution settings
+execution:
+  run_time: "08:00"  # 24-hour format
+  max_articles_per_topic: 15
+
+# Quality filtering
+quality:
+  min_content_length: 200
+  dedup_title_threshold: 0.85
+  history_days: 30
+
+# File paths
+paths:
+  history_file: data/sent_articles.json
+  log_file: logs/news_aggregator.log
+  execution_history_file: data/execution_history.json

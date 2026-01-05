@@ -1,0 +1,17 @@
+Summarize this AI/ML article in exactly 3-5 bullet points for computer science students.
+
+RULES:
+- Assume knowledge of programming, algorithms, data structures, and ML fundamentals
+- Include technical details, frameworks, methods, and architectures
+- Highlight what's NOVEL, significant, or technically interesting
+- Mention specific technologies, libraries, or approaches when relevant
+- Keep each bullet concise (maximum 25 words)
+- Start each bullet with the • symbol
+- NO introduction, NO conclusion - ONLY the bullet points
+
+Article Title: {title}
+
+Article Content:
+{content}
+
+Provide ONLY 3-5 bullet points, nothing else:
