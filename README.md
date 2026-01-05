@@ -201,7 +201,37 @@ RECIPIENT_EMAIL=your-email@example.com
 3. Enable IMAP/SMTP and generate authorization code
 4. Use this code as `SMTP_PASSWORD`
 
-### 2. Configure Topics and RSS Feeds
+### 2. Configure Email Settings
+
+Edit `config/config.yaml` to set up your email:
+
+**For Gmail:**
+```yaml
+email:
+  smtp_host: smtp.gmail.com
+  smtp_port: 587
+  smtp_username: your-email@gmail.com
+  from_email: your-email@gmail.com
+  use_tls: true
+```
+
+**For QQ Mail:**
+```yaml
+email:
+  smtp_host: smtp.qq.com
+  smtp_port: 465
+  smtp_username: your-email@qq.com
+  from_email: your-email@qq.com
+  use_tls: false  # QQ Mail uses SSL on port 465
+```
+
+**Important Notes:**
+- The `SMTP_PASSWORD` is set in `.env` file (see step 1)
+- For Gmail: Use App Password (requires 2FA enabled)
+- For QQ Mail: Use authorization code (not your login password)
+- `smtp_username` and `from_email` should match your email address
+
+### 3. Configure Topics and RSS Feeds
 
 **Important**: The default `config/config.yaml` is intentionally empty. You need to add your own topics and RSS feeds.
 
@@ -411,17 +441,27 @@ uv run news-aggregator --remove-feed
 
 ### Quick Start Workflow
 
-1. **Add your first topic and feeds:**
+1. **Configure environment variables (.env):**
+   ```bash
+   cp example.env .env
+   # Edit .env with your API key and SMTP password
+   ```
+
+2. **Configure email settings (config/config.yaml):**
+   - Set `smtp_host`, `smtp_port`, `smtp_username`, `from_email`
+   - See "Configure Email Settings" section above
+
+3. **Add your first topic and feeds:**
    ```bash
    uv run news-aggregator --add-feeds
    ```
 
-2. **Test the configuration:**
+4. **Test the configuration:**
    ```bash
    uv run news-aggregator --once
    ```
 
-3. **Start the daily scheduler:**
+5. **Start the daily scheduler:**
    ```bash
    uv run news-aggregator
    ```
@@ -850,7 +890,37 @@ RECIPIENT_EMAIL=your-email@example.com
 3. 开启 IMAP/SMTP 并生成授权码
 4. 将授权码用作 `SMTP_PASSWORD`
 
-### 2. 配置主题和 RSS 订阅源
+### 2. 配置邮件设置
+
+编辑 `config/config.yaml` 设置邮件发送：
+
+**使用 Gmail：**
+```yaml
+email:
+  smtp_host: smtp.gmail.com
+  smtp_port: 587
+  smtp_username: your-email@gmail.com
+  from_email: your-email@gmail.com
+  use_tls: true
+```
+
+**使用 QQ 邮箱：**
+```yaml
+email:
+  smtp_host: smtp.qq.com
+  smtp_port: 465
+  smtp_username: your-email@qq.com
+  from_email: your-email@qq.com
+  use_tls: false  # QQ 邮箱在 465 端口使用 SSL
+```
+
+**重要说明：**
+- `SMTP_PASSWORD` 在 `.env` 文件中设置（见步骤 1）
+- Gmail：使用应用专用密码（需要启用两步验证）
+- QQ 邮箱：使用授权码（不是登录密码）
+- `smtp_username` 和 `from_email` 应该与你的邮箱地址一致
+
+### 3. 配置主题和 RSS 订阅源
 
 **重要**：默认的 `config/config.yaml` 是空的。你需要添加自己的主题和 RSS 订阅源。
 
@@ -1060,17 +1130,27 @@ uv run news-aggregator --remove-feed
 
 ### 快速开始流程
 
-1. **添加第一个主题和订阅源：**
+1. **配置环境变量（.env）：**
+   ```bash
+   cp example.env .env
+   # 编辑 .env 填入 API 密钥和 SMTP 密码
+   ```
+
+2. **配置邮件设置（config/config.yaml）：**
+   - 设置 `smtp_host`、`smtp_port`、`smtp_username`、`from_email`
+   - 参见上方"配置邮件设置"部分
+
+3. **添加第一个主题和订阅源：**
    ```bash
    uv run news-aggregator --add-feeds
    ```
 
-2. **测试配置：**
+4. **测试配置：**
    ```bash
    uv run news-aggregator --once
    ```
 
-3. **启动每日调度器：**
+5. **启动每日调度器：**
    ```bash
    uv run news-aggregator
    ```
