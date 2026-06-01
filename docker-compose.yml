@@ -1,0 +1,23 @@
+services:
+  news-aggregator:
+    build: .
+    image: news-aggregator:latest
+    container_name: news-aggregator
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./config/config.yaml:/app/config/config.yaml:ro
+      - ./config/prompts:/app/config/prompts:ro
+      - news-aggregator-data:/app/data
+      - news-aggregator-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "news-aggregator", "--help"]
+      interval: 1h
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+volumes:
+  news-aggregator-data:
+  news-aggregator-logs:
