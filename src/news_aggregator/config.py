@@ -157,9 +157,10 @@ def load_config(config_path: str = "config/config.yaml") -> Config:
     Raises:
         ConfigError: If configuration is invalid or missing required fields
     """
-    # Load environment variables
+    # Load environment variables. Root .env takes precedence; config/.env
+    # is kept as a fallback for legacy installations.
     load_dotenv("config/.env")
-    load_dotenv()  # Also load from project root .env if exists
+    load_dotenv(override=True)
 
     # Check if config file exists
     if not os.path.exists(config_path):
@@ -181,16 +182,20 @@ def load_config(config_path: str = "config/config.yaml") -> Config:
         if section not in yaml_config:
             raise ConfigError(f"Missing required configuration section: {section}")
 
-    # Load topic configurations
+    # Load topic configurations. Topics are user-defined; the only
+    # requirement is at least one topic with at least one enabled feed.
     topics = {}
-    topics_config = yaml_config.get('topics', {})
-    required_topics = ['polymarket', 'ai', 'robotics']
+    topics_config = yaml_config.get('topics') or {}
 
-    for topic in required_topics:
-        if topic not in topics_config:
-            raise ConfigError(f"Missing configuration for required topic: {topic}")
+    if not topics_config:
+        raise ConfigError(
+            "No topics configured. Add at least one topic under the "
+            "'topics' key in config.yaml (e.g. via `news-aggregator --add-feeds`)."
+        )
 
-        topic_data = topics_config[topic]
+    for topic, topic_data in topics_config.items():
+        if not isinstance(topic_data, dict):
+            raise ConfigError(f"Invalid configuration for topic '{topic}': expected a mapping")
         try:
             topics[topic] = TopicConfig(
                 audience_level=topic_data.get('audience_level', 'beginner'),
@@ -200,16 +205,19 @@ def load_config(config_path: str = "config/config.yaml") -> Config:
                 max_articles_per_day=topic_data.get('max_articles_per_day', 10),
                 trusted_sources=topic_data.get('trusted_sources', [])
             )
-        except Exception as e:
-            raise ConfigError(f"Invalid configuration for topic '{topic}': {e}")
+        except (TypeError, ValueError) as e:
+            raise ConfigError(f"Invalid configuration for topic '{topic}': {e}") from e
 
     # Load news sources
     news_sources = {}
-    news_sources_config = yaml_config.get('news_sources', {})
+    news_sources_config = yaml_config.get('news_sources') or {}
 
-    for topic in required_topics:
+    for topic in topics:
         if topic not in news_sources_config:
-            raise ConfigError(f"No news sources configured for topic: {topic}")
+            raise ConfigError(
+                f"No news sources configured for topic: {topic}. "
+                f"Run `news-aggregator --add-feeds` to add feeds."
+            )
 
         feeds = []
         for feed_data in news_sources_config[topic]:
@@ -448,9 +456,9 @@ def validate_config(config: Config) -> None:
     try:
         hours, minutes = config.run_time.split(':')
         if not (0 <= int(hours) <= 23 and 0 <= int(minutes) <= 59):
-            raise ValueError
-    except:
-        raise ConfigError(f"Invalid run_time format (use HH:MM): {config.run_time}")
+            raise ValueError("time component out of range")
+    except (ValueError, AttributeError) as e:
+        raise ConfigError(f"Invalid run_time format (use HH:MM): {config.run_time} ({e})")
 
     # Validate audience levels
     valid_audience_levels = {'beginner', 'cs_student'}
