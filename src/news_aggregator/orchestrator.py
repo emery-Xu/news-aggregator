@@ -15,6 +15,7 @@ from .processing.ranker import ArticleRanker
 from .providers.multi_provider_summarizer import MultiProviderSummarizer
 from .email_composer import EmailComposer
 from .email_sender import EmailSender
+from .web.storage import ArticleStore
 from .logger import get_logger
 
 
@@ -35,13 +36,13 @@ class PipelineOrchestrator:
         self.fetcher = MultiSourceFetcher(config=config)
         similarity_threshold = int(config.quality.dedup_title_threshold * 100)
         self.deduplicator = Deduplicator(
-            history_file=config.history_file,
-            similarity_threshold=similarity_threshold
+            history_file=config.history_file, similarity_threshold=similarity_threshold
         )
         self.ranker = ArticleRanker(config)
         self.summarizer = MultiProviderSummarizer(config)
         self.email_composer = EmailComposer(config=config)
         self.email_sender = EmailSender(smtp_config=config.smtp)
+        self.article_store = ArticleStore(base_dir=config.articles_dir)
 
     async def run_pipeline(self) -> ExecutionResult:
         """
@@ -83,14 +84,16 @@ class PipelineOrchestrator:
                     articles_fetched=0,
                     articles_sent=0,
                     errors=errors,
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
             # Stage 2: Deduplicate articles
             self.logger.info("Stage 2: Deduplicating articles")
             try:
                 unique_articles = self.deduplicator.deduplicate(articles)
-                self.logger.info(f"OK: {len(unique_articles)} unique articles after deduplication")
+                self.logger.info(
+                    f"OK: {len(unique_articles)} unique articles after deduplication"
+                )
 
             except Exception as e:
                 error_msg = f"CRITICAL: Deduplication failed: {e}"
@@ -102,14 +105,16 @@ class PipelineOrchestrator:
                     articles_fetched=articles_fetched,
                     articles_sent=0,
                     errors=errors,
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
             # Stage 3: Rank and filter articles by quality
             self.logger.info("Stage 3: Ranking and filtering articles")
             try:
                 ranked_articles = self.ranker.rank_and_filter(unique_articles)
-                self.logger.info(f"OK: Retained {len(ranked_articles)} articles after ranking")
+                self.logger.info(
+                    f"OK: Retained {len(ranked_articles)} articles after ranking"
+                )
 
             except Exception as e:
                 error_msg = f"CRITICAL: Ranking failed: {e}"
@@ -121,30 +126,42 @@ class PipelineOrchestrator:
                     articles_fetched=articles_fetched,
                     articles_sent=0,
                     errors=errors,
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
             # Stage 4: Summarize articles with AI
             self.logger.info("Stage 4: Generating AI summaries")
             try:
                 # Group ranked articles by topic for audience-specific summarization
-                articles_by_topic = {}
+                articles_by_topic: dict[str, list] = {}
                 for ranked_article in ranked_articles:
                     topic = ranked_article.article.topic
                     articles_by_topic.setdefault(topic, []).append(ranked_article)
 
-                summarized_by_topic = await self.summarizer.summarize_by_audience(articles_by_topic)
-                summarized_articles = [
-                    article
-                    for topic_articles in summarized_by_topic.values()
-                    for article in topic_articles
-                ]
+                summarized_by_topic = await self.summarizer.summarize_by_audience(
+                    articles_by_topic
+                )
+                summarized_articles = []
+                for topic, topic_articles in summarized_by_topic.items():
+                    ranked_map = {
+                        ra.article.url: ra.quality_score
+                        for ra in articles_by_topic.get(topic, [])
+                    }
+                    for article in topic_articles:
+                        article.quality_score = ranked_map.get(article.url, 0.0)
+                        summarized_articles.append(article)
 
-                success_count = sum(1 for a in summarized_articles if not a.summarization_failed)
-                self.logger.info(f"OK: Generated {success_count}/{len(summarized_articles)} summaries")
+                success_count = sum(
+                    1 for a in summarized_articles if not a.summarization_failed
+                )
+                self.logger.info(
+                    f"OK: Generated {success_count}/{len(summarized_articles)} summaries"
+                )
 
                 if success_count == 0 and summarized_articles:
-                    error_msg = "WARNING: All summarizations failed, using original content"
+                    error_msg = (
+                        "WARNING: All summarizations failed, using original content"
+                    )
                     self.logger.warning(error_msg)
                     errors.append(error_msg)
 
@@ -157,21 +174,34 @@ class PipelineOrchestrator:
                 for ranked_article in ranked_articles:
                     topic = ranked_article.article.topic
                     topic_config = self.config.topics.get(topic)
-                    audience_level = topic_config.audience_level if topic_config else "beginner"
+                    audience_level = (
+                        topic_config.audience_level if topic_config else "beginner"
+                    )
                     summarized_articles.append(
                         SummarizedArticle.from_article(
                             ranked_article.article,
                             summary_bullets=[],
                             audience_level=audience_level,
-                            summarization_failed=True
+                            summarization_failed=True,
                         )
                     )
+
+            # Persist articles to web storage
+            try:
+                self.article_store.save_articles(summarized_articles)
+                self.logger.info(
+                    f"OK: Persisted {len(summarized_articles)} articles to web storage"
+                )
+            except Exception as e:
+                self.logger.warning(f"Failed to persist articles to web storage: {e}")
 
             # Stage 5: Compose email
             self.logger.info("Stage 5: Composing email")
             try:
                 email_content = self.email_composer.compose(summarized_articles)
-                self.logger.info(f"OK: Composed email with subject: {email_content.subject}")
+                self.logger.info(
+                    f"OK: Composed email with subject: {email_content.subject}"
+                )
 
             except Exception as e:
                 error_msg = f"CRITICAL: Email composition failed: {e}"
@@ -183,17 +213,21 @@ class PipelineOrchestrator:
                     articles_fetched=articles_fetched,
                     articles_sent=0,
                     errors=errors,
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
             # Stage 6: Send email
             self.logger.info("Stage 6: Sending email")
             try:
-                success = self.email_sender.send(self.config.recipient_email, email_content)
+                success = self.email_sender.send(
+                    self.config.recipient_email, email_content
+                )
 
                 if success:
                     articles_sent = len(summarized_articles)
-                    self.logger.info(f"OK: Email sent successfully to {self.config.recipient_email}")
+                    self.logger.info(
+                        f"OK: Email sent successfully to {self.config.recipient_email}"
+                    )
 
                     # Update history with sent articles
                     if summarized_articles:
@@ -217,7 +251,7 @@ class PipelineOrchestrator:
                         articles_fetched=articles_fetched,
                         articles_sent=0,
                         errors=errors,
-                        execution_time=time.time() - start_time
+                        execution_time=time.time() - start_time,
                     )
 
             except Exception as e:
@@ -237,14 +271,18 @@ class PipelineOrchestrator:
                     articles_fetched=articles_fetched,
                     articles_sent=0,
                     errors=errors,
-                    execution_time=time.time() - start_time
+                    execution_time=time.time() - start_time,
                 )
 
             # Pipeline completed successfully
             execution_time = time.time() - start_time
             self.logger.info("=" * 70)
-            self.logger.info(f"Pipeline completed successfully in {execution_time:.2f} seconds")
-            self.logger.info(f"Articles: {articles_fetched} fetched -> {len(unique_articles)} unique -> {articles_sent} sent")
+            self.logger.info(
+                f"Pipeline completed successfully in {execution_time:.2f} seconds"
+            )
+            self.logger.info(
+                f"Articles: {articles_fetched} fetched -> {len(unique_articles)} unique -> {articles_sent} sent"
+            )
             self.logger.info("=" * 70)
 
             result = ExecutionResult(
@@ -252,7 +290,7 @@ class PipelineOrchestrator:
                 articles_fetched=articles_fetched,
                 articles_sent=articles_sent,
                 errors=errors,
-                execution_time=execution_time
+                execution_time=execution_time,
             )
 
             # Save execution history
@@ -271,7 +309,7 @@ class PipelineOrchestrator:
                 articles_fetched=articles_fetched,
                 articles_sent=articles_sent,
                 errors=errors,
-                execution_time=execution_time
+                execution_time=execution_time,
             )
 
     async def _send_error_notification(self, error_message: str) -> None:
@@ -304,7 +342,7 @@ class PipelineOrchestrator:
                 {error_message}
 
                 Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-                """
+                """,
             )
 
             self.email_sender.send(self.config.recipient_email, content, max_retries=1)
@@ -325,7 +363,7 @@ class PipelineOrchestrator:
             # Load existing history
             history = []
             if history_file.exists():
-                with open(history_file, 'r', encoding='utf-8') as f:
+                with open(history_file, "r", encoding="utf-8") as f:
                     history = json.load(f)
 
             # Add new result
@@ -334,13 +372,14 @@ class PipelineOrchestrator:
             # Keep only last 30 days
             cutoff = datetime.now().timestamp() - (30 * 24 * 60 * 60)
             history = [
-                h for h in history
-                if datetime.fromisoformat(h['timestamp']).timestamp() >= cutoff
+                h
+                for h in history
+                if datetime.fromisoformat(h["timestamp"]).timestamp() >= cutoff
             ]
 
             # Save updated history
             history_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(history_file, 'w', encoding='utf-8') as f:
+            with open(history_file, "w", encoding="utf-8") as f:
                 json.dump(history, f, indent=2, ensure_ascii=False)
 
             self.logger.debug(f"Saved execution history to {history_file}")

@@ -247,6 +247,8 @@ email:
 execution:
   run_time: "08:00"
   max_articles_per_topic: 15
+  web_host: "127.0.0.1"
+  web_port: 8000
 
 # Quality filtering
 quality:
@@ -259,3 +261,4 @@ paths:
   history_file: data/sent_articles.json
   log_file: logs/news_aggregator.log
   execution_history_file: data/execution_history.json
+  articles_dir: data/articles

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Daily AI News Digest{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f0f2f5;
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            padding: 20px 0;
+            flex-shrink: 0;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #2a2a4a;
+            margin-bottom: 10px;
+        }
+        .sidebar-header h2 {
+            font-size: 16px;
+            color: #4CAF50;
+            margin-bottom: 4px;
+        }
+        .sidebar-header p {
+            font-size: 12px;
+            color: #888;
+        }
+        .date-list {
+            list-style: none;
+        }
+        .date-list li a {
+            display: block;
+            padding: 10px 20px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .date-list li a:hover {
+            background-color: #2a2a4a;
+            color: #fff;
+        }
+        .date-list li a.active {
+            background-color: #4CAF50;
+            color: #fff;
+            font-weight: 600;
+        }
+        .main-content {
+            flex: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 40px;
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .date-nav a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e8e8e8;
+            color: #333;
+            text-decoration: none;
+            font-size: 18px;
+            transition: background-color 0.2s;
+        }
+        .date-nav a:hover {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+        .date-nav a.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .date-nav .current-date {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .summary-bar {
+            background-color: #fff;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .summary-bar .total {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a1a1a;
+        }
+        .summary-bar .topic-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background-color: #f0f7ff;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #2196F3;
+            font-weight: 500;
+        }
+        .topic-section {
+            margin-bottom: 36px;
+        }
+        .topic-header {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e8e8e8;
+        }
+        .topic-header .count {
+            font-size: 14px;
+            color: #888;
+            font-weight: 400;
+        }
+        .audience-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 400;
+            background-color: #f5f5f5;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .context-card {
+            background-color: #e8f4f8;
+            border: 1px solid #b3d9e6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+        .context-card summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .context-card p {
+            margin-top: 10px;
+            color: #555;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .article-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #4CAF50;
+            transition: box-shadow 0.2s;
+        }
+        .article-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        .article-title {
+            font-size: 18px;
+            color: #1a73e8;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .article-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .article-title a:hover {
+            text-decoration: underline;
+        }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #777;
+        }
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .score-high { background-color: #4CAF50; }
+        .score-medium { background-color: #FF9800; }
+        .score-low { background-color: #f44336; }
+        .article-bullets {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+        .article-bullets li {
+            margin-bottom: 6px;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .article-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+        }
+        .read-more {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .read-more:hover {
+            background-color: #45a049;
+        }
+        .source-label {
+            font-size: 13px;
+            color: #999;
+        }
+        .no-articles {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .no-articles h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .no-articles p {
+            font-size: 16px;
+        }
+        .no-topic-articles {
+            padding: 16px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #ccc;
+            color: #666;
+            font-style: italic;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 768px) {
+            .layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                padding: 10px 0;
+            }
+            .sidebar-header {
+                padding: 0 16px 10px;
+            }
+            .date-list {
+                display: flex;
+                overflow-x: auto;
+                padding: 0 16px;
+                gap: 4px;
+            }
+            .date-list li a {
+                padding: 6px 12px;
+                white-space: nowrap;
+                border-radius: 16px;
+                font-size: 13px;
+            }
+            .main-content {
+                padding: 20px 16px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
+            .topic-header {
+                font-size: 20px;
+                flex-wrap: wrap;
+            }
+            .article-title {
+                font-size: 16px;
+            }
+            .summary-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        {% block sidebar %}{% endblock %}
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

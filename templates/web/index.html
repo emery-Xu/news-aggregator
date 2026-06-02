@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if current_date %}Daily AI News Digest - {{ current_date.strftime('%B %d, %Y') }}{% else %}Daily AI News Digest{% endif %}
+{% endblock %}
+
+{% block sidebar %}
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h2>News Digest</h2>
+        <p>Available dates</p>
+    </div>
+    {% if available_dates %}
+    <ul class="date-list">
+        {% for d in available_dates %}
+        <li>
+            <a href="/digest/{{ d.isoformat() }}"
+               class="{{ 'active' if current_date and d == current_date else '' }}">
+                {{ d.strftime('%b %d, %Y') }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div style="padding: 20px; color: #888; font-size: 14px;">
+        No digests available yet.
+    </div>
+    {% endif %}
+</aside>
+{% endblock %}
+
+{% block content %}
+{% if current_date is none %}
+<div class="no-articles">
+    <h2>No Digests Available</h2>
+    <p>Run the pipeline to generate your first digest.</p>
+</div>
+{% else %}
+
+<div class="header">
+    <h1>Daily AI News Digest</h1>
+    <div class="date-nav">
+        {% if prev_date %}
+        <a href="/digest/{{ prev_date.isoformat() }}" title="{{ prev_date.strftime('%B %d, %Y') }}">&larr;</a>
+        {% else %}
+        <a class="disabled">&larr;</a>
+        {% endif %}
+        <span class="current-date">{{ current_date.strftime('%B %d, %Y') }}</span>
+        {% if next_date %}
+        <a href="/digest/{{ next_date.isoformat() }}" title="{{ next_date.strftime('%B %d, %Y') }}">&rarr;</a>
+        {% else %}
+        <a class="disabled">&rarr;</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if total_count > 0 %}
+<div class="summary-bar">
+    <span class="total">{{ total_count }} article{{ 's' if total_count != 1 else '' }}</span>
+    {% for topic, count in topic_counts.items() %}
+    <span class="topic-badge">{{ topic | capitalize }}: {{ count }}</span>
+    {% endfor %}
+</div>
+
+{% for topic, topic_articles in topics.items() %}
+<div class="topic-section">
+    <h2 class="topic-header">
+        {{ topic | capitalize }}
+        <span class="count">({{ topic_articles | length }} article{{ 's' if topic_articles | length != 1 else '' }})</span>
+        {% if topic in topic_configs %}
+        <span class="audience-label">
+            {% if topic_configs[topic].audience_level == 'cs_student' %}For CS Students{% else %}For Beginners{% endif %}
+        </span>
+        {% endif %}
+    </h2>
+
+    {% if topic in topic_configs and topic_configs[topic].context_text %}
+    <details class="context-card">
+        <summary>Background: What is {{ topic | capitalize }}?</summary>
+        <p>{{ topic_configs[topic].context_text }}</p>
+    </details>
+    {% endif %}
+
+    {% for article in topic_articles %}
+    <div class="article-card">
+        <h3 class="article-title">
+            <a href="{{ article.url }}" target="_blank" rel="noopener">{{ article.title }}</a>
+        </h3>
+
+        <div class="article-meta">
+            {% if article.quality_score is defined and article.quality_score > 0 %}
+            <span class="score-badge {% if article.quality_score > 0.7 %}score-high{% elif article.quality_score > 0.4 %}score-medium{% else %}score-low{% endif %}">
+                {{ "%.0f" | format(article.quality_score * 100) }}
+            </span>
+            {% endif %}
+            <span>{{ article.source }}</span>
+            {% if article.published_at %}
+            <span>{{ article.published_at[:10] }}</span>
+            {% endif %}
+        </div>
+
+        {% if article.summary_bullets %}
+        <ul class="article-bullets">
+            {% for bullet in article.summary_bullets %}
+            <li>{{ bullet }}</li>
+            {% endfor %}
+        </ul>
+        {% elif article.content %}
+        <p style="color: #555; font-size: 14px; margin: 12px 0;">{{ article.content[:300] }}...</p>
+        {% endif %}
+
+        <div class="article-footer">
+            <a href="{{ article.url }}" target="_blank" rel="noopener" class="read-more">Read more &rarr;</a>
+            <span class="source-label">{{ article.source }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+{% else %}
+<div class="no-articles">
+    <h2>No Articles for This Date</h2>
+    <p>No new articles were collected on {{ current_date.strftime('%B %d, %Y') }}.</p>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}
